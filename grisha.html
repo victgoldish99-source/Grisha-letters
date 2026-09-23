@@ -1,0 +1,1080 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Для тебя, Мусечка</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    background: linear-gradient(135deg, #1a0b2e 0%, #2b1055 35%, #4b2c7f 70%, #7597de 100%);
+    background-size: 200% 200%;
+    animation: gradientShift 20s ease infinite;
+    min-height: 100vh;
+    color: white;
+    padding: 40px 20px;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  @keyframes gradientShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  .stars { position: fixed; width: 100%; height: 100%; top: 0; left: 0; pointer-events: none; z-index: 1; }
+  .star { position: absolute; background: white; border-radius: 50%; animation: twinkle 3s infinite ease-in-out; }
+  @keyframes twinkle {
+    0%, 100% { opacity: 0.2; transform: scale(1); }
+    50% { opacity: 0.9; transform: scale(1.3); }
+  }
+
+  .container { max-width: 720px; margin: 0 auto; position: relative; z-index: 10; }
+
+  header { text-align: center; margin-bottom: 50px; padding: 20px; }
+
+  h1 {
+    font-size: 2.4em;
+    font-weight: 300;
+    letter-spacing: 1px;
+    margin-bottom: 15px;
+    background: linear-gradient(90deg, #ffb6e6, #ff9a9e, #ffd6a5);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 0 0 40px rgba(255, 182, 230, 0.3);
+  }
+
+  .header-subtitle {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 1em;
+    line-height: 1.7;
+    max-width: 540px;
+    margin: 0 auto;
+  }
+
+  .section { margin-bottom: 45px; }
+
+  .section-title {
+    font-size: 1.35em;
+    font-weight: 400;
+    color: #ffd6a5;
+    margin-bottom: 18px;
+    padding-left: 8px;
+    letter-spacing: 0.5px;
+    text-shadow: 0 0 20px rgba(255, 214, 165, 0.4);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(255, 214, 165, 0.5), transparent);
+  }
+
+  .letters { display: flex; flex-direction: column; gap: 12px; }
+
+  .letter-btn {
+    padding: 20px 24px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    color: white;
+    font-family: inherit;
+    font-size: 1em;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .letter-btn::before {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%;
+    width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 182, 230, 0.15), transparent);
+    transition: left 0.5s ease;
+  }
+  .letter-btn:hover::before { left: 100%; }
+
+  .letter-btn:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 182, 230, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(255, 154, 158, 0.2);
+  }
+
+  .letter-btn .icon { font-size: 1.6em; flex-shrink: 0; }
+  .letter-btn .label { font-weight: 400; flex: 1; }
+  .letter-btn .arrow { opacity: 0.5; font-size: 1.1em; transition: transform 0.3s ease; }
+  .letter-btn:hover .arrow { transform: translateX(5px); opacity: 1; }
+
+  .letter-modal {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(10, 5, 20, 0.85);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: none;
+    align-items: flex-start;
+    justify-content: center;
+    z-index: 1000;
+    padding: 40px 20px;
+    overflow-y: auto;
+    animation: fadeIn 0.4s ease;
+  }
+  .letter-modal.active { display: flex; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  .letter-content {
+    max-width: 620px;
+    width: 100%;
+    border-radius: 28px;
+    padding: 45px 40px;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
+    animation: pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+    margin: auto;
+    overflow: hidden;
+    background: #fff0f6; /* фоллбэк, пока фон не загрузится */
+  }
+  @keyframes pop {
+    0% { transform: scale(0.85); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  /* === ДВА СЛОЯ ФОНА ДЛЯ ПЛАВНОГО CROSS-FADE === */
+  .letter-bg {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    opacity: 0;
+    transition: opacity 0.9s ease;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .letter-bg.active { opacity: 1; }
+
+  .letter-decor {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 1;
+  }
+  .letter-decor span {
+    position: absolute;
+    opacity: 0.13;
+    animation: floatDecor 8s ease-in-out infinite;
+  }
+  @keyframes floatDecor {
+    0%, 100% { transform: translate(0, 0) rotate(var(--rot, 0deg)); }
+    50% { transform: translate(var(--dx, 10px), var(--dy, -15px)) rotate(calc(var(--rot, 0deg) + 10deg)); }
+  }
+
+  .letter-content > *:not(.letter-bg):not(.letter-decor) { position: relative; z-index: 2; }
+
+  .letter-content .close-btn {
+    position: absolute;
+    top: 18px; right: 20px;
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(0, 0, 0, 0.08);
+    color: inherit;
+    font-size: 1.2em;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: inherit;
+    z-index: 5;
+  }
+  .letter-content .close-btn:hover {
+    background: rgba(0, 0, 0, 0.15);
+    transform: rotate(90deg);
+  }
+
+  .letter-content .letter-icon {
+    font-size: 3em;
+    margin-bottom: 10px;
+    display: block;
+    text-align: center;
+    transition: transform 0.4s ease;
+  }
+
+  .letter-content h2 {
+    font-size: 1.5em;
+    font-weight: 500;
+    text-align: center;
+    margin-bottom: 25px;
+    transition: color 0.9s ease;
+  }
+
+  .letter-content .letter-text {
+    font-size: 1.05em;
+    line-height: 1.85;
+    white-space: pre-wrap;
+    transition: color 0.9s ease;
+  }
+  .letter-content .letter-text p { margin-bottom: 15px; }
+
+  .letter-content .signature {
+    margin-top: 30px;
+    text-align: right;
+    font-style: italic;
+    font-size: 1em;
+    transition: color 0.9s ease;
+  }
+
+  .letter-photo {
+    width: 100%;
+    border-radius: 18px;
+    margin: 25px 0;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+    display: block;
+    position: relative;
+    z-index: 2;
+  }
+
+  .disclaimer {
+    margin-top: 60px;
+    padding: 22px 24px;
+    border: 1px dashed rgba(255, 214, 165, 0.4);
+    border-radius: 16px;
+    background: rgba(255, 214, 165, 0.05);
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 0.9em;
+    line-height: 1.7;
+    text-align: center;
+  }
+  .disclaimer strong { color: #ffd6a5; }
+  .disclaimer a { color: #ffb6e6; text-decoration: none; border-bottom: 1px dotted rgba(255, 182, 230, 0.5); transition: all 0.3s ease; }
+  .disclaimer a:hover { border-bottom-color: #ffb6e6; }
+
+  footer { text-align: center; margin-top: 30px; padding: 20px; color: rgba(255, 255, 255, 0.4); font-size: 0.85em; }
+
+  @media (max-width: 600px) {
+    h1 { font-size: 1.7em; }
+    .letter-content { padding: 35px 25px; }
+    .letter-content h2 { font-size: 1.25em; }
+    .letter-btn { padding: 16px 18px; font-size: 0.95em; }
+    .section-title { font-size: 1.15em; }
+  }
+</style>
+</head>
+<body>
+
+<div class="stars" id="stars"></div>
+
+<div class="container">
+  <header>
+    <h1>Для тебя, Мусечка 💫</h1>
+    <p class="header-subtitle">
+      Здесь собраны письма на разные случаи жизни. Открывай то, которое откликается прямо сейчас.
+      Я всегда рядом — даже когда далеко.
+    </p>
+  </header>
+
+  <div class="section">
+    <h2 class="section-title">О тебе, Мусечка 🐻</h2>
+    <div class="letters">
+      <button class="letter-btn" onclick="openLetter('angry')">
+        <span class="icon">🔥</span>
+        <span class="label">Открой, когда злишься</span>
+        <span class="arrow">→</span>
+      </button>
+      <button class="letter-btn" onclick="openLetter('miss')">
+        <span class="icon">💭</span>
+        <span class="label">Открой, когда меня нет рядом и ты скучаешь</span>
+        <span class="arrow">→</span>
+      </button>
+      <button class="letter-btn" onclick="openLetter('doubt')">
+        <span class="icon">🌙</span>
+        <span class="label">Открой, когда сомневаешься в себе</span>
+        <span class="arrow">→</span>
+      </button>
+      <button class="letter-btn" onclick="openLetter('tired')">
+        <span class="icon">🌿</span>
+        <span class="label">Открой, когда устал</span>
+        <span class="arrow">→</span>
+      </button>
+      <button class="letter-btn" onclick="openLetter('justbecause')">
+        <span class="icon">🦆</span>
+        <span class="label">Открой просто так</span>
+        <span class="arrow">→</span>
+      </button>
+      <button class="letter-btn" onclick="openLetter('chill')">
+        <span class="icon">🍺</span>
+        <span class="label">Открой, если нужно просто расчиллиться</span>
+        <span class="arrow">→</span>
+      </button>
+      <button class="letter-btn" onclick="openLetter('powerless')">
+        <span class="icon">🌊</span>
+        <span class="label">Открой, когда чувствуешь себя бессильным</span>
+        <span class="arrow">→</span>
+      </button>
+      <button class="letter-btn" onclick="openLetter('offended')">
+        <span class="icon">🩹</span>
+        <span class="label">Открой, когда обидишься на меня</span>
+        <span class="arrow">→</span>
+      </button>
+      <button class="letter-btn" onclick="openLetter('sad')">
+        <span class="icon">🌧️</span>
+        <span class="label">Открой, когда грустно</span>
+        <span class="arrow">→</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">О нас 💕</h2>
+    <div class="letters">
+      <button class="letter-btn" onclick="openLetter('youloveme')">
+        <span class="icon">❤️</span>
+        <span class="label">Открой, чтобы вспомнить, за что ты любишь меня</span>
+        <span class="arrow">→</span>
+      </button>
+      <button class="letter-btn" onclick="openLetter('iloveyou')">
+        <span class="icon">💜</span>
+        <span class="label">Открой, чтобы вспомнить, за что я люблю тебя</span>
+        <span class="arrow">→</span>
+      </button>
+      <button class="letter-btn" onclick="openLetter('anniversary')">
+        <span class="icon">🎉</span>
+        <span class="label">Открой на нашу первую микро-годовщину (03.10.2026)</span>
+        <span class="arrow">→</span>
+      </button>
+      <button class="letter-btn" onclick="openLetter('nothearing')">
+        <span class="icon">📞</span>
+        <span class="label">Открой, если чувствуешь, что мы не слышим друг друга</span>
+        <span class="arrow">→</span>
+      </button>
+      <button class="letter-btn" onclick="openLetter('wedding')">
+        <span class="icon">💍</span>
+        <span class="label">Открой в первый день после свадьбы</span>
+        <span class="arrow">→</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Инструкции на все случаи жизни 📖</h2>
+    <div class="letters">
+      <button class="letter-btn" onclick="openLetter('fufel')">
+        <span class="icon">🐱</span>
+        <span class="label">Инструкция на Фуфла</span>
+        <span class="arrow">→</span>
+      </button>
+      <button class="letter-btn" onclick="openLetter('flowers')">
+        <span class="icon">🌱</span>
+        <span class="label">Инструкция на цветочки</span>
+        <span class="arrow">→</span>
+      </button>
+      <button class="letter-btn" onclick="openLetter('myanger')">
+        <span class="icon">💅</span>
+        <span class="label">Инструкция на мою злость</span>
+        <span class="arrow">→</span>
+      </button>
+      <button class="letter-btn" onclick="openLetter('myhurt')">
+        <span class="icon">🥺</span>
+        <span class="label">Инструкция на мою обиду</span>
+        <span class="arrow">→</span>
+      </button>
+      <button class="letter-btn" onclick="openLetter('pms')">
+        <span class="icon">🩸</span>
+        <span class="label">Инструкция на месячные</span>
+        <span class="arrow">→</span>
+      </button>
+      <button class="letter-btn" onclick="openLetter('pleaseme')">
+        <span class="icon">🎁</span>
+        <span class="label">Инструкция на то, как меня порадовать</span>
+        <span class="arrow">→</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="disclaimer">
+    <strong>Внимание:</strong> все разделы — пополняемые. Актуальность информации просим уточнять
+    по тел.: <a href="tel:+79282314769">+7 928 231-47-69</a> или по почте:
+    <a href="mailto:annaring99@mail.ru">annaring99@mail.ru</a> 📞💌
+  </div>
+
+  <footer>сделано с любовью, специально для тебя 💕</footer>
+</div>
+
+<div class="letter-modal" id="letterModal" onclick="closeOnBackdrop(event)">
+  <div class="letter-content" id="letterContent">
+    <div class="letter-bg" id="letterBgA"></div>
+    <div class="letter-bg" id="letterBgB"></div>
+    <div class="letter-decor" id="letterDecor"></div>
+    <button class="close-btn" onclick="closeLetter()">✕</button>
+    <span class="letter-icon" id="letterIcon"></span>
+    <h2 id="letterTitle"></h2>
+    <div class="letter-text" id="letterText"></div>
+    <p class="signature" id="letterSignature">— твоя Вика 💕</p>
+  </div>
+</div>
+
+<script>
+  const letters = {
+
+    // ========= РАЗДЕЛ 1: О ТЕБЕ =========
+
+    angry: {
+      icon: '🔥',
+      title: 'Открой, когда злишься',
+      text: `Гриша,
+
+если ты открыл это письмо — значит, что-то сильно разозлило. Я понимаю. Бывает.
+
+Первое: дыши. Медленно. Вдох — раз. Выдох — два. Ещё раз.
+
+Второе: злость — это нормально. Ты человек, а не робот.
+
+Третье: не принимай решений на горячую голову. Подожди час.
+
+Четвёртое: если хочешь — позвони мне. Я не буду давать советы. Я просто побуду рядом.
+
+Пятое: помни, что завтра это будет уже не так важно.
+
+Люблю тебя. Даже когда ты злишься.`,
+      photo: '',
+      theme: {
+        gradient: 'linear-gradient(160deg, #fff0e8, #ffcfb8, #ff9c78)',
+        titleColor: '#a02911',
+        textColor: '#5c1a08',
+        signatureColor: '#d0442a',
+        decorations: ['🔥', '💢', '⚡', '🌋', '💥']
+      }
+    },
+
+    miss: {
+      icon: '💭',
+      title: 'Открой, когда меня нет рядом и ты скучаешь',
+      text: `Мусечка,
+
+я тоже скучаю. Прямо сейчас. Даже если мы виделись 5 минут назад.
+
+Скука по человеку — это не слабость. Это доказательство, что между нами что-то настоящее.
+
+Давай сделаем ритуал? Закрой глаза. Сосчитай до трёх. Я в этот момент, скорее всего, тоже думаю о тебе.
+
+А хочешь — открой наш чат и напиши «обнимаю». Я отвечу тем же. Это наша кнопка.
+
+Я рядом. Не физически — но по-настоящему. Всегда.`,
+      photo: '',
+      theme: {
+        gradient: 'linear-gradient(160deg, #eef2f7, #c8d4e3, #9db1c9)',
+        titleColor: '#3d5570',
+        textColor: '#1e2a40',
+        signatureColor: '#607a9c',
+        decorations: ['💭', '💧', '🌧️', '☁️', '🌙']
+      }
+    },
+
+    doubt: {
+      icon: '🌙',
+      title: 'Открой, когда сомневаешься в себе',
+      text: `Гриша,
+
+я знаю этот голос. Который шепчет: «Ты недостаточно хорош».
+
+Он врёт.
+
+Ты — один из самых умных, добрых и сильных людей, которых я знаю. Ты написал мне приложение. Ты выложил моё имя из фрагментов мест на планете. Ты не сдаёшься — даже когда весь мир как будто против.
+
+Ты справляешься. Я это вижу. Даже когда ты сам в себя не веришь — я верю за нас двоих.
+
+Соберись, мой хороший. У тебя всё получится.`,
+      photo: '',
+      theme: {
+        gradient: 'linear-gradient(160deg, #e8ecf7, #c5cfe8, #9cabd4)',
+        titleColor: '#2a3a7a',
+        textColor: '#141e45',
+        signatureColor: '#4a5aa0',
+        decorations: ['🌙', '⭐', '💭', '✨', '📖', '🌟']
+      }
+    },
+
+    tired: {
+      icon: '🌿',
+      title: 'Открой, когда устал',
+      text: `Гриша,
+
+я знаю, как это бывает. Когда голова гудит, руки не слушаются, а мысль одна: «Я больше не могу».
+
+Слушай меня, пожалуйста.
+
+Отдохни. Закрой ноутбук. Отложи телефон. Полежи. Поспи. Мир не рухнет, если ты возьмёшь паузу.
+
+Ты не обязан быть продуктивным 24/7. Ты живой человек, который устаёт, и это нормально.
+
+Сделай себе чай. Завернись в плед. Посмотри в окно.
+
+А если хочешь — напиши мне. Я просто побуду рядом.
+
+Ты у меня самый лучший. Но даже лучшим нужен отдых.`,
+      photo: '',
+      theme: {
+        gradient: 'linear-gradient(160deg, #f5f0e8, #e0d6c2, #c5b89c)',
+        titleColor: '#7a6540',
+        textColor: '#3d3020',
+        signatureColor: '#9c8560',
+        decorations: ['😴', '💤', '☕', '🌙', '🛋️', '🌿']
+      }
+    },
+
+    justbecause: {
+      icon: '🦆',
+      title: 'Открой просто так',
+      text: `Гриша,
+
+я тебя люблю. Просто так. Без повода. Без условий.
+
+Не за то, что ты делаешь. А просто потому, что ты — это ты.
+
+Мне нравится, как ты улыбаешься. Как ты смотришь, когда думаешь. Как заботишься — не словами, а делами.
+
+Ты — моё самое большое везение. Мой дом — где бы мы ни были.
+
+Спасибо, что ты есть. 🦆`,
+      photo: '',
+      theme: {
+        gradient: 'linear-gradient(160deg, #fffbe8, #ffefb8, #ffe085)',
+        titleColor: '#a87a00',
+        textColor: '#5c4000',
+        signatureColor: '#d4a020',
+        decorations: ['🦆', '🦆', '💛', '🌟', '✨', '🐤']
+      }
+    },
+
+    chill: {
+      icon: '🍺',
+      title: 'Открой, если нужно просто расчиллиться',
+      text: `Гриша, солнце,
+
+закрой на минуту глаза. Представь: ты лежишь на диване. Я рядом. Плед большой, чипсы, хадыженское в холодильнике. За окном либо дождь, либо звёзды. По телевизору идёт что-то тупое. Шрек. Или наш мем-архив.
+
+Ты ничего не должен. Не должен отвечать. Не должен ничего решать. Ты просто есть. И этого достаточно.
+
+Если можешь — сделай это прямо сейчас. Отложи дела на час. И открой пивко. 🍻
+
+Хочешь — напиши мне. Почиллимся вместе на расстоянии.`,
+      photo: '',
+      theme: {
+        gradient: 'linear-gradient(160deg, #fff5d6, #f0d489, #d4b04a)',
+        titleColor: '#7a5a00',
+        textColor: '#3d2e00',
+        signatureColor: '#a88500',
+        decorations: ['🍺', '🍻', '🍃', '🌊', '🎵', '😎']
+      }
+    },
+
+    powerless: {
+      icon: '🌊',
+      title: 'Открой, когда чувствуешь себя бессильным',
+      text: `Гриша,
+
+когда мир рушится, когда ничего не работает, когда ты не знаешь, что делать — это самое тяжёлое. Я знаю.
+
+И я хочу, чтобы ты знал: бессилие — это не твоя вина. Никто не всесилен.
+
+Ты можешь контролировать только то, что в твоих руках. И это ок.
+
+Позволь себе признать: сейчас я ничего не могу сделать. Это не значит, что я плохой. Это значит, что я человек.
+
+А потом сделай один маленький шаг. Один. Не десять.
+
+Я рядом. Я не жду от тебя героизма. Я жду только одного — что ты не сдашься. А ты не сдашься.`,
+      photo: '',
+      theme: {
+        gradient: 'linear-gradient(160deg, #e8edf2, #c8d2dc, #a5b4c2)',
+        titleColor: '#3d5060',
+        textColor: '#1e2832',
+        signatureColor: '#5b7080',
+        decorations: ['🌊', '💧', '🫥', '😔', '☁️', '🌫️']
+      }
+    },
+
+    offended: {
+      icon: '🩹',
+      title: 'Открой, когда обидишься на меня',
+      text: `Мусечка,
+
+если ты читаешь это — значит, я тебя обидела. И я, скорее всего, не рядом.
+
+Я не идеальная. Я бываю резкой, невнимательной, глупой.
+
+Но я никогда не хочу тебя ранить. Никогда. Если я это делаю — это не потому, что мне всё равно, а потому, что я тоже человек.
+
+Если можешь — напиши мне. Не молчи. Скажи, что тебя задело. Я хочу знать.
+
+И знай: даже когда я злюсь или говорю глупости — я тебя люблю. Всегда.`,
+      photo: '',
+      theme: {
+        gradient: 'linear-gradient(160deg, #f7eef2, #e8d0dc, #d4b0c2)',
+        titleColor: '#80506a',
+        textColor: '#40202e',
+        signatureColor: '#a5708a',
+        decorations: ['🩹', '💔', '🤍', '🕊️', '💧', '🌸']
+      }
+    },
+
+    sad: {
+      icon: '🌧️',
+      title: 'Открой, когда грустно',
+      text: `Гриша,
+
+грустить — можно. Правда. Не надо делать вид, что всё хорошо, если не хорошо.
+
+Если хочется плакать — плачь. Если хочется лежать — лежи. Хочешь побыть один — побудь. Я не буду обижаться.
+
+Но если захочется, чтобы кто-то был рядом — я здесь.
+
+Помнишь, ты говорил, что даже в самый тёмный час есть 60 минут? Так вот, даже в самой глубокой грусти есть я. Я рядом. Даже когда далеко.
+
+Обнимаю тебя. Крепко. Накрываю пледом. Делаю чай.`,
+      photo: '',
+      theme: {
+        gradient: 'linear-gradient(160deg, #dfe6ec, #b8c5d0, #8a9cb0)',
+        titleColor: '#2e3d52',
+        textColor: '#141e2a',
+        signatureColor: '#4a5f78',
+        decorations: ['🌧️', '💧', '☁️', '🌙', '🕯️', '🌫️']
+      }
+    },
+
+    // ========= РАЗДЕЛ 2: О НАС =========
+
+    youloveme: {
+      icon: '❤️',
+      title: 'Открой, чтобы вспомнить, за что ты любишь меня',
+      text: `Гриша,
+
+я не могу точно знать, за что ты меня любишь. Но вот несколько причин, которые, мне кажется, имеют место быть. 😊
+
+— Я умею сделать обычный день особенным.
+— Я смеюсь над твоими шутками. Даже над самыми тупыми.
+— Я горжусь тобой громко.
+— Я умею поддержать, когда тебе плохо. И не мешать, когда нужна тишина.
+— Я вкусно готовлю. По крайней мере, ты так говоришь. 😏
+— Я всегда с тобой честна, даже когда это неудобно.
+— Я верю в тебя. Даже когда ты сам в себя не веришь.
+
+Если что-то забыла — напомни. Список открытый. 😌`,
+      photo: '',
+      theme: {
+        gradient: 'linear-gradient(160deg, #f7e8ec, #e0b8c2, #c28a9c)',
+        titleColor: '#6a1e30',
+        textColor: '#3a0e1a',
+        signatureColor: '#8a3048',
+        decorations: ['❤️', '💗', '🥀', '🌹', '❤️', '💕']
+      }
+    },
+
+    iloveyou: {
+      icon: '💜',
+      title: 'Открой, чтобы вспомнить, за что я люблю тебя',
+      text: `Гриша,
+
+за что я тебя люблю? Легко.
+
+За твой ум. Ты умный так, что я иногда смотрю и не понимаю, как ты всё это держишь в голове.
+
+За твоё сердце. Ты умеешь заботиться по-настоящему. Не словами — делами.
+
+За твоё чувство юмора. За то, что ты смеёшься над Шреком и странными гирляндами.
+
+За твою честность. Ты говоришь как есть. Это редкость.
+
+За то, как ты смотришь на меня. Как будто я — самое ценное, что у тебя есть.
+
+За то, что с тобой мне спокойно. Ты — мой дом, где бы мы ни были.
+
+Я могла бы писать это вечно. И, кажется, буду.`,
+      photo: '',
+      theme: {
+        gradient: 'linear-gradient(160deg, #f0e8ff, #d4b8ff, #b08ae0)',
+        titleColor: '#5a2a9c',
+        textColor: '#2a1050',
+        signatureColor: '#7a48c0',
+        decorations: ['💜', '💗', '🔮', '✨', '💜', '🦄']
+      }
+    },
+
+    anniversary: {
+      icon: '🎉',
+      title: 'Открой на нашу первую микро-годовщину (03.10.2026)',
+      text: `Гриша!
+
+Сегодня наша первая микро-годовщина. 03.10.2026. Маленькая дата, но такая важная.
+
+Я хочу сказать тебе одну вещь: за это время я стала счастливее. По-настоящему.
+
+Ты — тот человек, с которым я хочу делить всё: смешное, грустное, странное, важное. Ты делаешь мою жизнь полнее.
+
+Спасибо, что выбрал меня. Спасибо, что остаёшься рядом. Спасибо за все твои сюрпризы.
+
+Я хочу много таких годовщин с тобой. Десять. Двадцать. Пятьдесят. Согласен? 😊
+
+Обнимаю тебя. Крепко. Через все расстояния.`,
+      photo: '',
+      theme: {
+        gradient: 'linear-gradient(160deg, #fff9e0, #ffe694, #ffd040)',
+        titleColor: '#a87000',
+        textColor: '#5c3a00',
+        signatureColor: '#d49000',
+        decorations: ['🎉', '🎊', '🥂', '✨', '⭐', '🎈', '🎁']
+      }
+    },
+
+    nothearing: {
+      icon: '📞',
+      title: 'Открой, если чувствуешь, что мы не слышим друг друга',
+      text: `Гриша,
+
+если ты открыл это письмо — значит, что-то пошло не так. Возможно, мы в ссоре. Возможно, просто не понимаем друг друга.
+
+Я хочу сказать тебе одну вещь: я тебя слышу. Даже когда кажется, что нет.
+
+Пожалуйста, будь терпелив со мной. И я буду терпелива с тобой.
+
+Давай попробуем снова. С чистого листа. Без обид, без «а ты говорил». Только мы: ты и я.
+
+Я не хочу тебя терять. Никогда.
+
+Если хочешь — позвони. Я возьму трубку. Обещаю.`,
+      photo: '',
+      theme: {
+        gradient: 'linear-gradient(160deg, #e0f5f0, #a8dfd5, #70c2b0)',
+        titleColor: '#1e6a5c',
+        textColor: '#0e352e',
+        signatureColor: '#3a9484',
+        decorations: ['💬', '🗣️', '📞', '👥', '🤝', '💭']
+      }
+    },
+
+    wedding: {
+      icon: '💍',
+      title: 'Открой в первый день после свадьбы',
+      text: `Гриша,
+
+если ты читаешь это — значит, мы это сделали. Мы поженились. 💍
+
+Я не знаю, каким был этот день. Может, волнительным. Может, смешным. Может, с пролитым шампанским и забытым кольцом. Неважно. Важно, что теперь ты — мой муж.
+
+Я вышла за тебя замуж не потому, что «так надо». А потому, что не могу представить рядом никого другого. Потому что ты — мой человек. Мой Мусечка. Мой дом.
+
+Я обещаю тебе: быть с тобой в горе и в радости. Смеяться с тобой. Плакать с тобой. Стареть с тобой. Ворчать на тебя за разбросанные носки и всё равно любить.
+
+Спасибо, что выбрал меня. Я не подведу. 💕
+
+Твоя жена (официально!) — Вика`,
+      photo: '',
+      theme: {
+        gradient: 'linear-gradient(160deg, #fffdf5, #f8f0d8, #e8d8a8)',
+        titleColor: '#8a6a20',
+        textColor: '#453318',
+        signatureColor: '#b89840',
+        decorations: ['💍', '🤍', '🕊️', '🌸', '✨', '🥂']
+      }
+    },
+
+    // ========= РАЗДЕЛ 3: ИНСТРУКЦИИ =========
+
+    fufel: {
+      icon: '🐱',
+      title: 'Инструкция на Фуфла',
+      text: `ВНИМАНИЕ! Обнаружен Фуфло! 😤
+
+Что делать:
+1. Не паниковать. Фуфло — существо временное.
+2. Помнить: Фуфло — это не про тебя. Это про настроение, усталость, обстоятельства.
+3. Если Фуфло у меня — не спорь со мной в этот момент. Просто обними. Молча.
+4. Если Фуфло у тебя — скажи мне. Я не обижусь. Я пойму.
+5. Если Фуфло у нас обоих — расходимся по комнатам. 20 минут. Потом миримся.
+6. Если Фуфло долго не проходит — значит, дело в чём-то большем. Тогда поговорим.
+
+Помни: даже с Фуфлом ты — мой любимый человек. 💕`,
+      photo: '',
+      theme: {
+        gradient: 'linear-gradient(160deg, #fff5ec, #f5dcc2, #e0b898)',
+        titleColor: '#8a5a30',
+        textColor: '#402810',
+        signatureColor: '#b08050',
+        decorations: ['🐱', '🐈', '🐾', '💕', '🐱', '🧶']
+      }
+    },
+
+    flowers: {
+      icon: '🌱',
+      title: 'Инструкция на цветочки',
+      text: `Инструкция: как ухаживать за цветочками 🌱
+
+Полив:
+1. Не заливать! Лучше недолить, чем перелить.
+2. Поливать утром или вечером. Не в полдень.
+3. Проверяй землю пальцем — если сухо на 2 см, пора поливать.
+
+Свет:
+4. Большинство цветов любят яркий, но не прямой свет.
+5. Переставляй подальше от батареи зимой.
+
+Уход:
+6. Протирай листья влажной тряпочкой. Они дышат!
+7. Убирай сухие листья и увядшие цветы.
+8. Раз в месяц — подкормка.
+
+Главное правило:
+9. Разговаривай с ними. Правда, помогает. 🌸
+
+И помни: если цветок вянет — это не значит, что ты плохой садовник. Просто ему нужно время.`,
+      photo: '',
+      theme: {
+        gradient: 'linear-gradient(160deg, #f0f8e8, #d0e8b8, #a8d088)',
+        titleColor: '#2e6b20',
+        textColor: '#143310',
+        signatureColor: '#4a8a3a',
+        decorations: ['🌱', '🌸', '🌿', '🌷', '💐', '🌺', '🍃']
+      }
+    },
+
+    myanger: {
+      icon: '💅',
+      title: 'Инструкция на мою злость',
+      text: `Инструкция: как выжить в зоне боевых действий 💅
+
+Внимание! Активирована Вика-в-ярости.
+
+1. Не спорь со мной в этот момент. Что бы я ни говорила — не спорь.
+2. Не уходи. Если уйдёшь — я расценю это как «ему всё равно».
+3. Не молчи злобно. Молчание = накаляюсь.
+4. Слушай. Просто слушай. Дай мне выговориться.
+5. Когда я закончу — обними. Молча. Не говори «ну ты же сама…».
+6. Через 20 минут я буду в порядке. Возможно, даже извинюсь.
+7. Помни: если я злюсь — значит, мне не всё равно.
+
+Спасибо, что умеешь меня вывозить. 💕`,
+      photo: '',
+      theme: {
+        gradient: 'linear-gradient(160deg, #ffe0ec, #f5a8c2, #e07098)',
+        titleColor: '#a81850',
+        textColor: '#5c0a28',
+        signatureColor: '#d04070',
+        decorations: ['💅', '💋', '🔥', '💢', '💄', '👠']
+      }
+    },
+
+    myhurt: {
+      icon: '🥺',
+      title: 'Инструкция на мою обиду',
+      text: `Инструкция: что делать, если Вика обиделась 🥺
+
+1. Не говори «да ладно, чего ты». Этим ты обесцениваешь мои чувства.
+2. Спроси: «Что случилось?» — и слушай. Не перебивай.
+3. Не оправдывайся. Скажи «я понял» — и действительно пойми.
+4. Если я не могу объяснить — не дави. Просто побудь рядом.
+5. Обними. Когда я уже готова. Или не готова, но уже не отталкиваю.
+6. Не жди, что я «отойду сама». Мне важно, чтобы ты пришёл первым.
+7. Помни: обида проходит, когда человек рядом. Не когда он прав. А когда он рядом.
+
+Спасибо, что умеешь быть рядом. 💕`,
+      photo: '',
+      theme: {
+        gradient: 'linear-gradient(160deg, #f5e8f8, #ddb8e8, #c088d0)',
+        titleColor: '#6a2080',
+        textColor: '#3a1048',
+        signatureColor: '#8a40a0',
+        decorations: ['🥺', '💧', '🌸', '💔', '🤍', '🩹']
+      }
+    },
+
+    pms: {
+      icon: '🩸',
+      title: 'Инструкция на месячные',
+      text: `Инструкция: как пережить ПМС и месячные 🩸
+
+Это не «просто дни». Это гормональный шторм, физическая боль и эмоциональные качели. Одновременно.
+
+Что делать:
+1. Ничего не объясняй логикой. Логика тут не работает.
+2. Принеси грелку. Или шоколад. Или и то, и другое.
+3. Не спрашивай «что с тобой?» — я и сама не знаю.
+4. Если я плачу без причины — не ищи причину. Её нет. Просто обними.
+5. Если я злюсь без причины — не ищи причину. Просто подожди.
+6. Не говори «ой, опять эти дни». Не подчёркивай.
+7. Купи мне мороженое. Два. Одно — тебе. 😏
+8. Скажи: «Ты самая лучшая. Даже сейчас». Особенно сейчас.
+
+Спасибо, что не бросаешь меня в эти дни. 💕`,
+      photo: '',
+      theme: {
+        gradient: 'linear-gradient(160deg, #f8e8f0, #e8b8cc, #d088a8)',
+        titleColor: '#8a2048',
+        textColor: '#4a0e28',
+        signatureColor: '#b04070',
+        decorations: ['🩸', '💕', '🌸', '🍫', '🌺', '🧸', '💗']
+      }
+    },
+
+    pleaseme: {
+      icon: '🎁',
+      title: 'Инструкция на то, как меня порадовать',
+      text: `Инструкция: как порадовать Вику 🎁
+
+Общие принципы:
+1. Внимание к деталям. Я запоминаю мелочи. Ты тоже должен.
+2. Неожиданность. Если я жду — уже не то.
+3. Искренность. Фальшь я чувствую за километр.
+
+Быстрые победы:
+— Принести мой любимый напиток / еду без просьбы.
+— Написать неожиданно тёплое сообщение днём.
+— Организовать маленькое свидание без повода.
+— Сделать что-то своими руками.
+— Вспомнить что-то, что я говорила давно, и сделать это.
+— Просто обнять и держать. Долго. Без слов.
+
+Крупные победы:
+— Сюрприз-поездка (даже на день).
+— Приложение / бот, сделанный для меня (это ты уже умеешь 😏).
+— Подарок, о котором я говорила один раз вскользь. И ты запомнил.
+
+Чего НЕ делать:
+— Не дарить то, что я сама просила. Это не сюрприз. Это доставка.
+— Не дарить «на отвали».
+— Не устраивать сцену прилюдно, если я не в настроении.
+
+Помни: главное — не что, а как. 💕`,
+      photo: '',
+      theme: {
+        gradient: 'linear-gradient(160deg, #fff5e0, #ffe0a0, #ffc860)',
+        titleColor: '#a87000',
+        textColor: '#5c3a00',
+        signatureColor: '#d49000',
+        decorations: ['🎁', '🎀', '✨', '🌟', '🎊', '💝', '🥳']
+      }
+    }
+
+  };
+
+  // === ЗВЁЗДЫ ===
+  const starsContainer = document.getElementById('stars');
+  for (let i = 0; i < 100; i++) {
+    const star = document.createElement('div');
+    star.className = 'star';
+    const size = Math.random() * 3 + 1;
+    star.style.width = size + 'px';
+    star.style.height = size + 'px';
+    star.style.left = Math.random() * 100 + '%';
+    star.style.top = Math.random() * 100 + '%';
+    star.style.animationDelay = Math.random() * 3 + 's';
+    star.style.animationDuration = (Math.random() * 3 + 2) + 's';
+    starsContainer.appendChild(star);
+  }
+
+  // === СЛОИ ФОНА ДЛЯ ПЛАВНОГО CROSS-FADE ===
+  const bgA = document.getElementById('letterBgA');
+  const bgB = document.getElementById('letterBgB');
+
+  function switchBackground(gradient) {
+    // Если bgA активен — заливаем градиент в bgB, потом переключаемся
+    const isAActive = bgA.classList.contains('active');
+    const target = isAActive ? bgB : bgA;
+    const current = isAActive ? bgA : bgB;
+
+    target.style.background = gradient;
+
+    // Форсируем рефлоу, чтобы transition сработал
+    void target.offsetWidth;
+
+    requestAnimationFrame(() => {
+      current.classList.remove('active');
+      target.classList.add('active');
+    });
+  }
+
+  // === ОТКРЫТИЕ ПИСЬМА ===
+  function openLetter(key) {
+    const letter = letters[key];
+    if (!letter) return;
+
+    const title = document.getElementById('letterTitle');
+    const text = document.getElementById('letterText');
+    const signature = document.getElementById('letterSignature');
+    const decor = document.getElementById('letterDecor');
+
+    // Плавная смена фона
+    switchBackground(letter.theme.gradient);
+
+    // Цвета текста (плавно через CSS transition)
+    title.style.color = letter.theme.titleColor;
+    text.style.color = letter.theme.textColor;
+    signature.style.color = letter.theme.signatureColor;
+
+    document.getElementById('letterIcon').textContent = letter.icon;
+    title.textContent = letter.title;
+
+    let html = '';
+    letter.text.split('\n\n').forEach(p => {
+      if (p.trim()) {
+        html += `<p>${p.replace(/\n/g, '<br>')}</p>`;
+      }
+    });
+
+    if (letter.photo) {
+      html += `<img class="letter-photo" src="${letter.photo}" alt="наше фото" onerror="this.style.display='none'">`;
+    }
+
+    text.innerHTML = html;
+
+    // Иконки на фоне
+    decor.innerHTML = '';
+    const decorEmojis = letter.theme.decorations;
+    for (let i = 0; i < 14; i++) {
+      const span = document.createElement('span');
+      span.textContent = decorEmojis[Math.floor(Math.random() * decorEmojis.length)];
+      span.style.left = Math.random() * 90 + '%';
+      span.style.top = Math.random() * 90 + '%';
+      span.style.fontSize = (Math.random() * 1.5 + 1) + 'em';
+      span.style.animationDelay = (Math.random() * 4) + 's';
+      span.style.animationDuration = (Math.random() * 4 + 6) + 's';
+      const rot = Math.random() * 360;
+      span.style.setProperty('--rot', rot + 'deg');
+      span.style.setProperty('--dx', (Math.random() * 30 - 15) + 'px');
+      span.style.setProperty('--dy', (Math.random() * 30 - 20) + 'px');
+      span.style.transform = `rotate(${rot}deg)`;
+      decor.appendChild(span);
+    }
+
+    document.getElementById('letterModal').classList.add('active');
+    if (navigator.vibrate) navigator.vibrate(30);
+  }
+
+  function closeLetter() {
+    document.getElementById('letterModal').classList.remove('active');
+  }
+
+  function closeOnBackdrop(event) {
+    if (event.target.id === 'letterModal') closeLetter();
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeLetter();
+  });
+</script>
+</body>
+</html>
